@@ -1,0 +1,27 @@
+show_token:
+  name: Show token
+  description: >-
+    Show the current connection token for a tailcat tunnel as a persistent
+    notification and return it in the service response.
+  fields:
+    config_entry_id:
+      name: Tunnel
+      description: The tailcat tunnel to read the token from.
+      required: true
+      selector:
+        config_entry:
+          integration: tailcat
+
+restart_tunnel:
+  name: Restart tunnel
+  description: >-
+    Restart a tailcat tunnel's process. Useful to recover from a stuck state
+    or to rotate an ephemeral token.
+  fields:
+    config_entry_id:
+      name: Tunnel
+      description: The tailcat tunnel to restart.
+      required: true
+      selector:
+        config_entry:
+          integration: tailcat

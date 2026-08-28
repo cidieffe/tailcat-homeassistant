@@ -1,0 +1,131 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "New tailcat tunnel",
+        "description": "tailcat has no prebuilt releases: build it yourself for your Home Assistant host's architecture and point this integration at the binary. See the README for cross-compile instructions.",
+        "data": {
+          "name": "Tunnel name",
+          "binary_path": "Path to the tailcat binary"
+        }
+      },
+      "mode": {
+        "title": "Tunnel mode",
+        "data": {
+          "mode": "What should this tunnel do?"
+        }
+      },
+      "port": {
+        "title": "Port to expose",
+        "data": {
+          "port": "Local TCP port"
+        }
+      },
+      "risk_confirm": {
+        "title": "Security warning",
+        "description": "Mode \"{mode}\" is security-sensitive: it either grants unauthenticated SSH access to this host, or turns it into an exit node for tailcat clients. Only enable this if you understand and accept the risk.",
+        "data": {
+          "risk_confirm": "I understand the risk and want to proceed"
+        }
+      },
+      "key": {
+        "title": "Connection key",
+        "data": {
+          "key_mode": "Key type",
+          "key_name": "Saved key name (only used when key type is \"saved\")"
+        }
+      },
+      "advanced": {
+        "title": "Advanced options",
+        "data": {
+          "region": "DERP region (\"auto\" for automatic)",
+          "allow_nodekey": "Restrict to these client public keys (comma-separated, optional)"
+        }
+      }
+    },
+    "error": {
+      "binary_not_found": "No file exists at this path",
+      "binary_not_executable": "This file is not executable",
+      "binary_timeout": "The binary did not respond in time",
+      "risk_not_confirmed": "You must confirm you understand the risk to continue",
+      "key_name_required": "A key name is required when using a saved key"
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "New tailcat tunnel",
+        "data": {
+          "name": "Tunnel name",
+          "binary_path": "Path to the tailcat binary"
+        }
+      },
+      "mode": {
+        "title": "Tunnel mode",
+        "data": {
+          "mode": "What should this tunnel do?"
+        }
+      },
+      "port": {
+        "title": "Port to expose",
+        "data": {
+          "port": "Local TCP port"
+        }
+      },
+      "risk_confirm": {
+        "title": "Security warning",
+        "description": "Mode \"{mode}\" is security-sensitive: it either grants unauthenticated SSH access to this host, or turns it into an exit node for tailcat clients. Only enable this if you understand and accept the risk.",
+        "data": {
+          "risk_confirm": "I understand the risk and want to proceed"
+        }
+      },
+      "key": {
+        "title": "Connection key",
+        "data": {
+          "key_mode": "Key type",
+          "key_name": "Saved key name (only used when key type is \"saved\")"
+        }
+      },
+      "advanced": {
+        "title": "Advanced options",
+        "data": {
+          "region": "DERP region (\"auto\" for automatic)",
+          "allow_nodekey": "Restrict to these client public keys (comma-separated, optional)"
+        }
+      }
+    },
+    "error": {
+      "binary_not_found": "No file exists at this path",
+      "binary_not_executable": "This file is not executable",
+      "binary_timeout": "The binary did not respond in time",
+      "risk_not_confirmed": "You must confirm you understand the risk to continue",
+      "key_name_required": "A key name is required when using a saved key"
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "port": "Forward a single port",
+        "all": "Forward all ports",
+        "no_auth_ssh": "Unauthenticated SSH server (security-sensitive)",
+        "exit_node": "Exit node (security-sensitive)"
+      }
+    },
+    "key_mode": {
+      "options": {
+        "ephemeral": "Ephemeral (new token on every restart)",
+        "saved": "Saved (stable address across restarts)"
+      }
+    }
+  },
+  "issues": {
+    "invalid_binary": {
+      "title": "Tailcat binary could not be started",
+      "description": "The tunnel \"{name}\" could not start tailcat at the configured path ({path}). Verify the binary is present, executable, and built for this host's architecture, then reload the integration."
+    },
+    "crash_loop": {
+      "title": "Tailcat tunnel keeps crashing",
+      "description": "The tunnel \"{name}\" has failed to stay running too many times in a row and automatic restarts have been paused. Check the Home Assistant logs for details, fix the underlying issue, then restart the tunnel from its \"Restart tunnel\" button."
+    }
+  }
+}

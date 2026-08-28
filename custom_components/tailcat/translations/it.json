@@ -1,0 +1,131 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nuovo tunnel tailcat",
+        "description": "tailcat non ha release precompilate: compilalo tu stesso per l'architettura del tuo host Home Assistant e indica qui il percorso del binario. Vedi il README per le istruzioni di cross-compilazione.",
+        "data": {
+          "name": "Nome del tunnel",
+          "binary_path": "Percorso del binario tailcat"
+        }
+      },
+      "mode": {
+        "title": "Modalità del tunnel",
+        "data": {
+          "mode": "Cosa deve fare questo tunnel?"
+        }
+      },
+      "port": {
+        "title": "Porta da esporre",
+        "data": {
+          "port": "Porta TCP locale"
+        }
+      },
+      "risk_confirm": {
+        "title": "Avviso di sicurezza",
+        "description": "La modalità \"{mode}\" è sensibile per la sicurezza: garantisce accesso SSH senza autenticazione a questo host, oppure lo trasforma in un exit node per i client tailcat. Attivala solo se comprendi e accetti il rischio.",
+        "data": {
+          "risk_confirm": "Ho capito il rischio e voglio procedere"
+        }
+      },
+      "key": {
+        "title": "Chiave di connessione",
+        "data": {
+          "key_mode": "Tipo di chiave",
+          "key_name": "Nome della chiave salvata (usato solo se il tipo è \"salvata\")"
+        }
+      },
+      "advanced": {
+        "title": "Opzioni avanzate",
+        "data": {
+          "region": "Regione DERP (\"auto\" per automatica)",
+          "allow_nodekey": "Limita a queste chiavi pubbliche client (separate da virgola, opzionale)"
+        }
+      }
+    },
+    "error": {
+      "binary_not_found": "Non esiste nessun file a questo percorso",
+      "binary_not_executable": "Questo file non è eseguibile",
+      "binary_timeout": "Il binario non ha risposto in tempo",
+      "risk_not_confirmed": "Devi confermare di aver capito il rischio per continuare",
+      "key_name_required": "È richiesto un nome per la chiave quando si usa una chiave salvata"
+    }
+  },
+  "options": {
+    "step": {
+      "user": {
+        "title": "Nuovo tunnel tailcat",
+        "data": {
+          "name": "Nome del tunnel",
+          "binary_path": "Percorso del binario tailcat"
+        }
+      },
+      "mode": {
+        "title": "Modalità del tunnel",
+        "data": {
+          "mode": "Cosa deve fare questo tunnel?"
+        }
+      },
+      "port": {
+        "title": "Porta da esporre",
+        "data": {
+          "port": "Porta TCP locale"
+        }
+      },
+      "risk_confirm": {
+        "title": "Avviso di sicurezza",
+        "description": "La modalità \"{mode}\" è sensibile per la sicurezza: garantisce accesso SSH senza autenticazione a questo host, oppure lo trasforma in un exit node per i client tailcat. Attivala solo se comprendi e accetti il rischio.",
+        "data": {
+          "risk_confirm": "Ho capito il rischio e voglio procedere"
+        }
+      },
+      "key": {
+        "title": "Chiave di connessione",
+        "data": {
+          "key_mode": "Tipo di chiave",
+          "key_name": "Nome della chiave salvata (usato solo se il tipo è \"salvata\")"
+        }
+      },
+      "advanced": {
+        "title": "Opzioni avanzate",
+        "data": {
+          "region": "Regione DERP (\"auto\" per automatica)",
+          "allow_nodekey": "Limita a queste chiavi pubbliche client (separate da virgola, opzionale)"
+        }
+      }
+    },
+    "error": {
+      "binary_not_found": "Non esiste nessun file a questo percorso",
+      "binary_not_executable": "Questo file non è eseguibile",
+      "binary_timeout": "Il binario non ha risposto in tempo",
+      "risk_not_confirmed": "Devi confermare di aver capito il rischio per continuare",
+      "key_name_required": "È richiesto un nome per la chiave quando si usa una chiave salvata"
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "port": "Esponi una singola porta",
+        "all": "Esponi tutte le porte",
+        "no_auth_ssh": "Server SSH senza autenticazione (sensibile per la sicurezza)",
+        "exit_node": "Exit node (sensibile per la sicurezza)"
+      }
+    },
+    "key_mode": {
+      "options": {
+        "ephemeral": "Effimera (nuovo token ad ogni riavvio)",
+        "saved": "Salvata (indirizzo stabile tra riavvii)"
+      }
+    }
+  },
+  "issues": {
+    "invalid_binary": {
+      "title": "Il binario tailcat non è partito",
+      "description": "Il tunnel \"{name}\" non è riuscito ad avviare tailcat nel percorso configurato ({path}). Verifica che il binario esista, sia eseguibile e compilato per l'architettura di questo host, poi ricarica l'integrazione."
+    },
+    "crash_loop": {
+      "title": "Il tunnel tailcat continua a bloccarsi",
+      "description": "Il tunnel \"{name}\" non è riuscito a restare avviato troppe volte di seguito e i riavvii automatici sono stati sospesi. Controlla i log di Home Assistant, risolvi il problema, poi riavvia il tunnel dal bottone \"Restart tunnel\"."
+    }
+  }
+}
