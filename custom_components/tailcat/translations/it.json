@@ -38,7 +38,6 @@
       "advanced": {
         "title": "Opzioni avanzate",
         "data": {
-          "region": "Regione DERP (\"auto\" per automatica)",
           "allow_nodekey": "Limita a queste chiavi pubbliche client (separate da virgola, opzionale)"
         }
       }
@@ -89,7 +88,6 @@
       "advanced": {
         "title": "Opzioni avanzate",
         "data": {
-          "region": "Regione DERP (\"auto\" per automatica)",
           "allow_nodekey": "Limita a queste chiavi pubbliche client (separate da virgola, opzionale)"
         }
       }

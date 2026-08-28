@@ -38,7 +38,6 @@
       "advanced": {
         "title": "Advanced options",
         "data": {
-          "region": "DERP region (\"auto\" for automatic)",
           "allow_nodekey": "Restrict to these client public keys (comma-separated, optional)"
         }
       }
@@ -89,7 +88,6 @@
       "advanced": {
         "title": "Advanced options",
         "data": {
-          "region": "DERP region (\"auto\" for automatic)",
           "allow_nodekey": "Restrict to these client public keys (comma-separated, optional)"
         }
       }

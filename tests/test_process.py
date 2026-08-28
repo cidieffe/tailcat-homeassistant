@@ -16,7 +16,6 @@ from custom_components.tailcat.const import (
     CONF_KEY_NAME,
     CONF_MODE,
     CONF_PORT,
-    CONF_REGION,
     DOMAIN,
     KEY_MODE_SAVED,
     MODE_ALL,
@@ -35,19 +34,13 @@ def test_build_args_port_mode_ephemeral_key() -> None:
     assert build_args(options) == ["--serve=8123", "--full-address", "--key=new"]
 
 
-def test_build_args_all_mode_saved_key_and_region() -> None:
+def test_build_args_all_mode_saved_key() -> None:
     options = {
         CONF_MODE: MODE_ALL,
         CONF_KEY_MODE: KEY_MODE_SAVED,
         CONF_KEY_NAME: "home",
-        CONF_REGION: "fra",
     }
-    assert build_args(options) == [
-        "--serve=all",
-        "--full-address",
-        "--key=home",
-        "--region=fra",
-    ]
+    assert build_args(options) == ["--serve=all", "--full-address", "--key=home"]
 
 
 def test_build_args_allow_nodekey() -> None:

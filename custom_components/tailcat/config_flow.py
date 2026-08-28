@@ -20,10 +20,8 @@ from .const import (
     CONF_MODE,
     CONF_NAME,
     CONF_PORT,
-    CONF_REGION,
     CONF_RISK_CONFIRM,
     DEFAULT_BINARY_PATH,
-    DEFAULT_REGION,
     DOMAIN,
     KEY_MODE_EPHEMERAL,
     KEY_MODE_SAVED,
@@ -206,9 +204,6 @@ class _TailcatFlowMixin:
 
         schema = vol.Schema(
             {
-                vol.Optional(
-                    CONF_REGION, default=self.draft.get(CONF_REGION, DEFAULT_REGION)
-                ): str,
                 vol.Optional(
                     CONF_ALLOW_NODEKEY,
                     default=self.draft.get(CONF_ALLOW_NODEKEY, ""),

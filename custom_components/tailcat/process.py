@@ -20,8 +20,6 @@ from .const import (
     CONF_KEY_NAME,
     CONF_MODE,
     CONF_PORT,
-    CONF_REGION,
-    DEFAULT_REGION,
     DOMAIN,
     ISSUE_CRASH_LOOP,
     ISSUE_INVALID_BINARY,
@@ -68,10 +66,6 @@ def build_args(options: Mapping[str, Any]) -> list[str]:
         args.append("--key=new")
     else:
         args.append(f"--key={options[CONF_KEY_NAME]}")
-
-    region = options.get(CONF_REGION, DEFAULT_REGION)
-    if region and region != DEFAULT_REGION:
-        args.append(f"--region={region}")
 
     allow_nodekey = options.get(CONF_ALLOW_NODEKEY)
     if allow_nodekey:

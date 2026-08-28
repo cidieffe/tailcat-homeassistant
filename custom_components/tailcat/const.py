@@ -11,12 +11,10 @@ CONF_PORT = "port"
 CONF_RISK_CONFIRM = "risk_confirm"
 CONF_KEY_MODE = "key_mode"
 CONF_KEY_NAME = "key_name"
-CONF_REGION = "region"
 CONF_ALLOW_NODEKEY = "allow_nodekey"
 CONF_ENABLED = "enabled"
 
 DEFAULT_BINARY_PATH = "/config/tailcat/tailcat"
-DEFAULT_REGION = "auto"
 
 # Tunnel modes, mapped 1:1 to the `--serve=` flag of the tailcat CLI.
 MODE_PORT = "port"
@@ -31,10 +29,8 @@ KEY_MODE_EPHEMERAL = "ephemeral"
 KEY_MODE_SAVED = "saved"
 KEY_MODES = [KEY_MODE_EPHEMERAL, KEY_MODE_SAVED]
 
-# tailcat prints its connection token to stderr as a base64-encoded CBOR
-# blob prefixed with "tc". The exact minimum length has not been verified
-# against a real binary yet (no prebuilt releases exist upstream) -- adjust
-# this pattern if real-world output does not match.
+# tailcat prints a line like "# \U0001F408 Server listening with new
+# address: tc..." to stderr; verified against a real binary build.
 TOKEN_REGEX = r"\btc[0-9A-Za-z_-]{20,}\b"
 
 STATUS_STOPPED = "stopped"

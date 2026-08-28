@@ -16,7 +16,7 @@ This integration lets you, from **Settings → Devices & Services**:
 
 - Create any number of independent tunnels, each exposing a single port,
   all local ports, an unauthenticated SSH server, or an exit node.
-- Change a tunnel's port/mode/key/region from the options flow, without
+- Change a tunnel's port/mode/key from the options flow, without
   editing files or restarting containers by hand.
 - Turn a tunnel on/off with a switch, restart it with a button, and reveal
   its current connection token on demand — without ever storing the token
@@ -40,6 +40,22 @@ the CPU architecture of the machine actually running Home Assistant
 
 ### 2. Cross-compile `tailcat` on any machine with Go installed
 
+Run the helper script with the target architecture (`amd64`, `arm64`,
+`armv7`, `armv6`), or `auto` to build for the machine you're running it on:
+
+```bash
+scripts/build-tailcat.sh arm64      # e.g. Raspberry Pi 4/5, 64-bit OS
+scripts/build-tailcat.sh auto       # build for this machine's own architecture
+```
+
+It checks that `go` (and `git`) are installed — printing install
+instructions per platform if not — clones `tailcat`, cross-compiles a
+static binary (`CGO_ENABLED=0`, so it doesn't matter whether your Home
+Assistant host uses glibc or musl), and drops it into `./dist/` along with
+its sha256 checksum and the exact next steps to copy it over.
+
+Equivalently, by hand:
+
 ```bash
 git clone https://github.com/tailscale/tailcat
 cd tailcat
@@ -54,13 +70,11 @@ CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -o tailcat-armv7 ./cmd/tail
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o tailcat-amd64 ./cmd/tailcat
 ```
 
-`CGO_ENABLED=0` produces a fully static binary, so it does not matter
-whether your Home Assistant host uses glibc or musl.
-
 ### 3. Copy the binary onto the Home Assistant host
 
-Copy the binary matching your architecture into the `config` directory (via
-Samba, the *Studio Code Server* add-on, `scp`, etc.), for example to
+Copy the binary matching your architecture (`dist/tailcat-linux-<arch>` if
+you used the script above) into the `config` directory (via Samba, the
+*Studio Code Server* add-on, `scp`, etc.), for example to
 `/config/tailcat/tailcat`, and make it executable:
 
 ```bash
@@ -104,8 +118,7 @@ The config flow walks you through:
 4. **Key type**: *ephemeral* generates a new address/token every time the
    tunnel (re)starts; *saved* keeps a stable address across restarts, at
    the cost of the address no longer rotating automatically.
-5. **Advanced**: DERP region override, and an optional allow-list of client
-   public keys.
+5. **Advanced**: an optional allow-list of client public keys.
 
 All of the above can be changed later from the tunnel's **Configure**
 button — changing any option restarts the underlying `tailcat` process.
@@ -158,7 +171,8 @@ pytest tests/ -q
 
 The test suite mocks the `tailcat` subprocess entirely, so it does not
 require a real binary. It does **not** replace testing against a real
-Home Assistant instance and a real `tailcat` binary before relying on this
-in production — in particular, the regex used to extract the token from
-`tailcat`'s stderr output was written from the upstream documentation, not
-from observing a real binary's output, and may need adjusting.
+Home Assistant instance before relying on this in production. The token
+extraction regex and CLI flags in `custom_components/tailcat/process.py`
+have been checked against a real `tailcat` build's `--help` output and
+actual server-mode stderr, but only on Linux/amd64 — worth re-checking if
+you see it fail to pick up a token on another architecture.
