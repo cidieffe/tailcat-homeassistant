@@ -176,3 +176,7 @@ extraction regex and CLI flags in `custom_components/tailcat/process.py`
 have been checked against a real `tailcat` build's `--help` output and
 actual server-mode stderr, but only on Linux/amd64 — worth re-checking if
 you see it fail to pick up a token on another architecture.
+
+## License
+
+[MIT](LICENSE)
