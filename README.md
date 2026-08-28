@@ -71,6 +71,13 @@ chmod +x /config/tailcat/tailcat
 only needs to be done once (unless you want to update `tailcat` itself
 later).
 
+## Before publishing this repository
+
+Replace the `YOUR_GITHUB_USERNAME` placeholders in
+`custom_components/tailcat/manifest.json` (`codeowners`, `documentation`,
+`issue_tracker`) with your actual GitHub username/repository once this is
+pushed somewhere.
+
 ## Installing the integration via HACS
 
 This repository is not in the default HACS store, so add it as a custom

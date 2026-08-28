@@ -234,19 +234,26 @@ class TailcatConfigFlow(_TailcatFlowMixin, ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return TailcatOptionsFlow(config_entry)
+        return TailcatOptionsFlow()
 
 
 class TailcatOptionsFlow(_TailcatFlowMixin, OptionsFlow):
-    """Reconfigure an existing tailcat tunnel using the same wizard steps."""
+    """Reconfigure an existing tailcat tunnel using the same wizard steps.
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self.config_entry = config_entry
+    `self.config_entry` is a property on the base OptionsFlow class (resolved
+    from `self.handler`), not something to set in `__init__`.
+    """
 
     def _step_defaults(self) -> dict[str, Any]:
         defaults = dict(self.config_entry.options)
         defaults[CONF_NAME] = self.config_entry.title
         return defaults
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Options flows enter at "init"; reuse the same "user" step."""
+        return await self.async_step_user(user_input)
 
     async def _async_finish(self) -> FlowResult:
         # The entry title itself is renamed by the update listener in
