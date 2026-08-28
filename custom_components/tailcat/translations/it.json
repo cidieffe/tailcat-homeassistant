@@ -124,6 +124,10 @@
     "crash_loop": {
       "title": "Il tunnel tailcat continua a bloccarsi",
       "description": "Il tunnel \"{name}\" non è riuscito a restare avviato troppe volte di seguito e i riavvii automatici sono stati sospesi. Ultimo errore da tailcat: \"{error}\". Controlla i log di Home Assistant per l'output completo, risolvi il problema, poi riavvia il tunnel dal bottone \"Restart tunnel\"."
+    },
+    "key_generation_failed": {
+      "title": "Impossibile generare la chiave tailcat",
+      "description": "Il tunnel \"{name}\" usa la chiave salvata \"{key_name}\", ma tailcat non è riuscito a generarla. Controlla i log di Home Assistant per l'errore esatto (spesso un problema di permessi sulla cartella di configurazione di tailcat), risolvilo, poi riavvia il tunnel."
     }
   }
 }

@@ -54,3 +54,4 @@ ATTR_TOKEN = "token"
 
 ISSUE_INVALID_BINARY = "invalid_binary"
 ISSUE_CRASH_LOOP = "crash_loop"
+ISSUE_KEY_GENERATION_FAILED = "key_generation_failed"

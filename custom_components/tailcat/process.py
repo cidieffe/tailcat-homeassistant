@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import re
 from collections import deque
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from homeassistant.components import persistent_notification
@@ -24,7 +26,9 @@ from .const import (
     DOMAIN,
     ISSUE_CRASH_LOOP,
     ISSUE_INVALID_BINARY,
+    ISSUE_KEY_GENERATION_FAILED,
     KEY_MODE_EPHEMERAL,
+    KEY_MODE_SAVED,
     MAX_CONSECUTIVE_FAILURES,
     MODE_ALL,
     MODE_EXIT_NODE,
@@ -47,6 +51,15 @@ _TOKEN_PATTERN = re.compile(TOKEN_REGEX)
 def signal_update(entry_id: str) -> str:
     """Return the dispatcher signal name used to notify entities of an update."""
     return f"{DOMAIN}_update_{entry_id}"
+
+
+def saved_key_path(key_name: str) -> Path:
+    """Where tailcat itself looks for a named saved key.
+
+    Mirrors Go's os.UserConfigDir(): $XDG_CONFIG_HOME, or ~/.config.
+    """
+    config_home = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
+    return Path(config_home) / "tailcat" / "keys" / f"{key_name}.private.json"
 
 
 def build_args(options: Mapping[str, Any]) -> list[str]:
@@ -115,6 +128,24 @@ class TailcatProcessManager:
         self._stopping = False
         self._set_status(STATUS_STARTING)
 
+        if self.entry.options.get(CONF_KEY_MODE) == KEY_MODE_SAVED:
+            key_name = self.entry.options[CONF_KEY_NAME]
+            if not await self._ensure_saved_key(binary_path, key_name):
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    f"{ISSUE_KEY_GENERATION_FAILED}_{self.entry.entry_id}",
+                    is_fixable=False,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key=ISSUE_KEY_GENERATION_FAILED,
+                    translation_placeholders={"name": self.name, "key_name": key_name},
+                )
+                self._set_status(STATUS_ERROR)
+                return
+            ir.async_delete_issue(
+                self.hass, DOMAIN, f"{ISSUE_KEY_GENERATION_FAILED}_{self.entry.entry_id}"
+            )
+
         try:
             self._process = await asyncio.create_subprocess_exec(
                 *argv,
@@ -152,6 +183,49 @@ class TailcatProcessManager:
         ]
         self._supervisor_task = self.hass.async_create_task(self._supervise())
         self._set_status(STATUS_RUNNING)
+
+    async def _ensure_saved_key(self, binary_path: str, key_name: str) -> bool:
+        """Create the named persistent key with `genkey` if it doesn't exist.
+
+        `genkey` refuses to overwrite an existing key (exits non-zero
+        without --force), so this only runs it when the file is missing.
+        """
+        if saved_key_path(key_name).exists():
+            return True
+
+        _LOGGER.info(
+            "Generating tailcat key '%s' for tunnel %s (not found at %s)",
+            key_name,
+            self.name,
+            saved_key_path(key_name),
+        )
+        try:
+            process = await asyncio.create_subprocess_exec(
+                binary_path,
+                "genkey",
+                f"--key={key_name}",
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            _, stderr = await process.communicate()
+        except OSError as err:
+            _LOGGER.error(
+                "Failed to run 'tailcat genkey --key=%s' for tunnel %s: %s",
+                key_name,
+                self.name,
+                err,
+            )
+            return False
+
+        if process.returncode != 0:
+            _LOGGER.error(
+                "'tailcat genkey --key=%s' failed for tunnel %s: %s",
+                key_name,
+                self.name,
+                stderr.decode(errors="replace").strip(),
+            )
+            return False
+        return True
 
     async def async_stop(self) -> None:
         """Stop the tailcat subprocess, if running."""

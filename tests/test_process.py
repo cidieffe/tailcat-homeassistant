@@ -170,6 +170,133 @@ async def test_stable_run_resets_failure_count(hass) -> None:
     await manager.async_shutdown()
 
 
+async def test_ensure_saved_key_skips_genkey_when_file_exists(
+    hass, tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    key_dir = tmp_path / "tailcat" / "keys"
+    key_dir.mkdir(parents=True)
+    (key_dir / "home.private.json").write_text("{}")
+
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    with patch(
+        "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+        new=AsyncMock(),
+    ) as mock_exec:
+        result = await manager._ensure_saved_key("/fake/tailcat", "home")
+
+    assert result is True
+    mock_exec.assert_not_called()
+
+
+async def test_ensure_saved_key_runs_genkey_when_missing(
+    hass, tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    genkey_process = FakeProcess()
+    genkey_process.returncode = 0
+
+    async def fake_communicate():
+        return b"", b""
+
+    genkey_process.communicate = fake_communicate
+
+    with patch(
+        "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+        new=AsyncMock(return_value=genkey_process),
+    ) as mock_exec:
+        result = await manager._ensure_saved_key("/fake/tailcat", "home")
+
+    assert result is True
+    mock_exec.assert_awaited_once_with(
+        "/fake/tailcat",
+        "genkey",
+        "--key=home",
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.PIPE,
+    )
+
+
+async def test_ensure_saved_key_returns_false_on_failure(
+    hass, tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    genkey_process = FakeProcess()
+    genkey_process.returncode = 1
+
+    async def fake_communicate():
+        return b"", b"boom\n"
+
+    genkey_process.communicate = fake_communicate
+
+    with patch(
+        "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+        new=AsyncMock(return_value=genkey_process),
+    ):
+        result = await manager._ensure_saved_key("/fake/tailcat", "home")
+
+    assert result is False
+
+
+async def test_start_generates_missing_saved_key_before_launch(
+    hass, tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+
+    entry = _make_entry(
+        {
+            CONF_MODE: MODE_PORT,
+            CONF_PORT: 8123,
+            CONF_KEY_MODE: KEY_MODE_SAVED,
+            CONF_KEY_NAME: "home",
+        }
+    )
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    genkey_process = FakeProcess()
+    genkey_process.returncode = 0
+
+    async def fake_communicate():
+        return b"", b""
+
+    genkey_process.communicate = fake_communicate
+
+    server_process = FakeProcess(stderr_lines=[b"tc" + b"c" * 30 + b"\n"])
+
+    calls: list[tuple] = []
+
+    async def fake_exec(*args, **kwargs):
+        calls.append(args)
+        return genkey_process if args[1] == "genkey" else server_process
+
+    with patch(
+        "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+        new=fake_exec,
+    ):
+        await manager.async_start()
+        await asyncio.sleep(0.05)
+
+    assert manager.status == STATUS_RUNNING
+    assert calls[0][1] == "genkey"  # key generated first
+    assert calls[1][0] == "/fake/tailcat"  # then the actual tunnel process
+
+    await manager.async_shutdown()
+
+
 async def test_stop_sets_status_stopped(hass) -> None:
     entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
     entry.add_to_hass(hass)
