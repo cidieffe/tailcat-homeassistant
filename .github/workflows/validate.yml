@@ -21,6 +21,11 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+          # "brands" needs a separate, reviewed PR to home-assistant/brands
+          # (see the "Icon" section in README.md) -- not something this repo
+          # can satisfy on its own, so it's ignored here rather than left
+          # permanently red.
+          ignore: "brands"
 
   pytest:
     runs-on: ubuntu-latest
