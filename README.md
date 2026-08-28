@@ -1,3 +1,5 @@
+<img src="icon.png" alt="Tailcat icon" width="96" height="96">
+
 # Tailcat for Home Assistant
 
 A [HACS](https://hacs.xyz/) integration that manages one or more
@@ -169,6 +171,17 @@ extraction regex and CLI flags in `custom_components/tailcat/process.py`
 have been checked against a real `tailcat` build's `--help` output and
 actual server-mode stderr, but only on Linux/amd64 — worth re-checking if
 you see it fail to pick up a token on another architecture.
+
+## Icon
+
+`icon.svg` / `icon.png` / `icon@2x.png` at the repository root are this
+project's icon. It's used as-is wherever this repo is displayed (GitHub,
+HACS's rendered README). To have it show up inside Home Assistant itself
+(the integrations page, HACS's own icon column), it needs to be submitted
+separately as a PR to
+[home-assistant/brands](https://github.com/home-assistant/brands) under
+`custom_integrations/tailcat/` — that's a different, community-reviewed
+repository, not something this repo controls on its own.
 
 ## License
 
