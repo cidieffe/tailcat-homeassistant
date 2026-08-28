@@ -99,6 +99,77 @@ async def test_unexpected_exit_marks_error_and_retries(hass) -> None:
     await manager.async_shutdown()
 
 
+async def test_recent_stderr_is_captured_for_diagnostics(hass) -> None:
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    fake_process = FakeProcess(stderr_lines=[b"flag provided but not defined: -bogus\n"])
+    with patch(
+        "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+        new=AsyncMock(return_value=fake_process),
+    ):
+        await manager.async_start()
+        await asyncio.sleep(0.05)
+        fake_process._exited.set()
+        await asyncio.sleep(0.05)
+
+    assert "flag provided but not defined: -bogus" in manager._recent_stderr
+
+    await manager.async_shutdown()
+
+
+async def test_repeated_quick_crashes_keep_incrementing_failures(hass) -> None:
+    """A run under STABLE_UPTIME_SECONDS never resets the failure count."""
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+
+    async def _crash_once() -> None:
+        fake_process = FakeProcess(stderr_lines=[])
+        with patch(
+            "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+            new=AsyncMock(return_value=fake_process),
+        ):
+            await manager.async_start()
+            await asyncio.sleep(0.02)
+            fake_process._exited.set()
+            await asyncio.sleep(0.02)
+
+    await _crash_once()
+    assert manager._consecutive_failures == 1
+    await _crash_once()
+    assert manager._consecutive_failures == 2
+
+    await manager.async_shutdown()
+
+
+async def test_stable_run_resets_failure_count(hass) -> None:
+    """A run that stays up past STABLE_UPTIME_SECONDS resets on its next crash."""
+    entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
+    entry.add_to_hass(hass)
+    manager = TailcatProcessManager(hass, entry)
+    manager._consecutive_failures = 3  # pretend a few quick crashes already happened
+
+    fake_process = FakeProcess(stderr_lines=[])
+    with (
+        patch(
+            "custom_components.tailcat.process.asyncio.create_subprocess_exec",
+            new=AsyncMock(return_value=fake_process),
+        ),
+        patch("custom_components.tailcat.process.STABLE_UPTIME_SECONDS", 0),
+    ):
+        await manager.async_start()
+        await asyncio.sleep(0.02)
+        fake_process._exited.set()
+        await asyncio.sleep(0.02)
+
+    # Reset to 0, then incremented for this crash: back to 1, not 4.
+    assert manager._consecutive_failures == 1
+
+    await manager.async_shutdown()
+
+
 async def test_stop_sets_status_stopped(hass) -> None:
     entry = _make_entry({CONF_MODE: MODE_PORT, CONF_PORT: 8123})
     entry.add_to_hass(hass)

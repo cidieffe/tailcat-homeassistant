@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+from collections import deque
 from collections.abc import Mapping
 from typing import Any
 
@@ -30,10 +31,12 @@ from .const import (
     MODE_NO_AUTH_SSH,
     MODE_PORT,
     RESTART_BACKOFF_SECONDS,
+    STABLE_UPTIME_SECONDS,
     STATUS_ERROR,
     STATUS_RUNNING,
     STATUS_STARTING,
     STATUS_STOPPED,
+    STDERR_BUFFER_LINES,
     TOKEN_REGEX,
 )
 
@@ -88,6 +91,8 @@ class TailcatProcessManager:
         self._supervisor_task: asyncio.Task | None = None
         self._stopping = False
         self._consecutive_failures = 0
+        self._started_at: float | None = None
+        self._recent_stderr: deque[str] = deque(maxlen=STDERR_BUFFER_LINES)
 
     @property
     def name(self) -> str:
@@ -139,6 +144,8 @@ class TailcatProcessManager:
             self.hass, DOMAIN, f"{ISSUE_INVALID_BINARY}_{self.entry.entry_id}"
         )
         self.last_token = None
+        self._started_at = self.hass.loop.time()
+        self._recent_stderr.clear()
         self._stdio_tasks = [
             self.hass.async_create_task(self._read_stderr()),
             self.hass.async_create_task(self._drain_stdout()),
@@ -201,6 +208,7 @@ class TailcatProcessManager:
                 break
             text = line.decode(errors="replace").rstrip()
             _LOGGER.debug("tailcat[%s] stderr: %s", self.name, text)
+            self._recent_stderr.append(text)
             if self.last_token is None:
                 match = _TOKEN_PATTERN.search(text)
                 if match:
@@ -217,8 +225,9 @@ class TailcatProcessManager:
             _LOGGER.debug("tailcat[%s] stdout: %s", self.name, line.decode(errors="replace").rstrip())
 
     async def _notify_token_ready(self) -> None:
-        # A token means tailcat started successfully; a previous crash loop is over.
-        self.reset_failure_count()
+        # Getting a token is not proof the process is stable: some failures
+        # (e.g. a broken --serve mode) only surface a couple of seconds
+        # later. _supervise() decides whether a run counts as stable.
         await self.async_notify_current_token()
 
     async def async_notify_current_token(self) -> None:
@@ -244,13 +253,29 @@ class TailcatProcessManager:
             self._set_status(STATUS_STOPPED)
             return
 
+        uptime = self.hass.loop.time() - self._started_at if self._started_at else 0
+        if uptime >= STABLE_UPTIME_SECONDS:
+            # It ran long enough that this counts as a fresh problem, not a
+            # continuation of a prior crash loop.
+            self.reset_failure_count()
+
+        stderr_tail = "\n".join(self._recent_stderr) or "(no output captured)"
         _LOGGER.warning(
-            "tailcat tunnel %s exited unexpectedly with code %s", self.name, return_code
+            "tailcat tunnel %s exited unexpectedly with code %s after %.1fs. "
+            "Its recent output was:\n%s",
+            self.name,
+            return_code,
+            uptime,
+            stderr_tail,
         )
         self._consecutive_failures += 1
         self._set_status(STATUS_ERROR)
 
         if self._consecutive_failures > MAX_CONSECUTIVE_FAILURES:
+            last_error = next(
+                (line for line in reversed(self._recent_stderr) if line.strip()),
+                "(see Home Assistant logs)",
+            )
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
@@ -258,7 +283,7 @@ class TailcatProcessManager:
                 is_fixable=False,
                 severity=ir.IssueSeverity.ERROR,
                 translation_key=ISSUE_CRASH_LOOP,
-                translation_placeholders={"name": self.name},
+                translation_placeholders={"name": self.name, "error": last_error},
             )
             return
 

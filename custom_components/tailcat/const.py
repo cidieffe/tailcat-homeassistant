@@ -40,6 +40,11 @@ STATUS_ERROR = "error"
 
 RESTART_BACKOFF_SECONDS = (5, 15, 30, 60)
 MAX_CONSECUTIVE_FAILURES = 5
+# A run shorter than this doesn't count as "stable" even if it printed a
+# token -- some failures (e.g. a broken --serve mode) only surface a couple
+# of seconds after the process looks like it started fine.
+STABLE_UPTIME_SECONDS = 30
+STDERR_BUFFER_LINES = 20
 
 SERVICE_SHOW_TOKEN = "show_token"
 SERVICE_RESTART_TUNNEL = "restart_tunnel"

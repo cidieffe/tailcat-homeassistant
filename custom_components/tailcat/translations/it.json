@@ -123,7 +123,7 @@
     },
     "crash_loop": {
       "title": "Il tunnel tailcat continua a bloccarsi",
-      "description": "Il tunnel \"{name}\" non è riuscito a restare avviato troppe volte di seguito e i riavvii automatici sono stati sospesi. Controlla i log di Home Assistant, risolvi il problema, poi riavvia il tunnel dal bottone \"Restart tunnel\"."
+      "description": "Il tunnel \"{name}\" non è riuscito a restare avviato troppe volte di seguito e i riavvii automatici sono stati sospesi. Ultimo errore da tailcat: \"{error}\". Controlla i log di Home Assistant per l'output completo, risolvi il problema, poi riavvia il tunnel dal bottone \"Restart tunnel\"."
     }
   }
 }

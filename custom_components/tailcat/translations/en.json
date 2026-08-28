@@ -123,7 +123,7 @@
     },
     "crash_loop": {
       "title": "Tailcat tunnel keeps crashing",
-      "description": "The tunnel \"{name}\" has failed to stay running too many times in a row and automatic restarts have been paused. Check the Home Assistant logs for details, fix the underlying issue, then restart the tunnel from its \"Restart tunnel\" button."
+      "description": "The tunnel \"{name}\" has failed to stay running too many times in a row and automatic restarts have been paused. Last error from tailcat: \"{error}\". Check the Home Assistant logs for the full output, fix the underlying issue, then restart the tunnel from its \"Restart tunnel\" button."
     }
   }
 }
