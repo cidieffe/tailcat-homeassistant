@@ -175,13 +175,18 @@ you see it fail to pick up a token on another architecture.
 ## Icon
 
 `icon.svg` / `icon.png` / `icon@2x.png` at the repository root are this
-project's icon. It's used as-is wherever this repo is displayed (GitHub,
-HACS's rendered README). To have it show up inside Home Assistant itself
-(the integrations page, HACS's own icon column), it needs to be submitted
-separately as a PR to
-[home-assistant/brands](https://github.com/home-assistant/brands) under
-`custom_integrations/tailcat/` — that's a different, community-reviewed
-repository, not something this repo controls on its own.
+project's icon (white background). It's used as-is wherever this repo is
+displayed (GitHub, HACS's rendered README).
+
+To have it show up inside Home Assistant itself (the integrations page,
+HACS's own icon column), it needs to be submitted separately as a PR to
+[home-assistant/brands](https://github.com/home-assistant/brands) — a
+different, community-reviewed repository, not something this repo controls
+on its own. `brands/custom_integrations/tailcat/` here already holds a
+brands-ready variant (transparent background, white outline around the
+silhouette so it stays visible on dark themes too) — copy that folder as
+`custom_integrations/tailcat/` into a fork of home-assistant/brands and open
+a PR there.
 
 ## License
 
