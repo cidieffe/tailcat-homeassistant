@@ -31,7 +31,7 @@ from .helpers import FakeProcess
 
 def test_build_args_port_mode_ephemeral_key() -> None:
     options = {CONF_MODE: MODE_PORT, CONF_PORT: 8123}
-    assert build_args(options) == ["--serve=8123", "--full-address", "--key=new"]
+    assert build_args(options) == ["--full-address", "--key=new", "8123"]
 
 
 def test_build_args_all_mode_saved_key() -> None:
@@ -40,13 +40,14 @@ def test_build_args_all_mode_saved_key() -> None:
         CONF_KEY_MODE: KEY_MODE_SAVED,
         CONF_KEY_NAME: "home",
     }
-    assert build_args(options) == ["--serve=all", "--full-address", "--key=home"]
+    assert build_args(options) == ["--full-address", "--key=home", "all"]
 
 
 def test_build_args_allow_nodekey() -> None:
     options = {CONF_MODE: MODE_ALL, CONF_ALLOW_NODEKEY: "abc123"}
     args = build_args(options)
-    assert args[-1] == "--allow=abc123"
+    assert "--allow=abc123" in args
+    assert args[-1] == "all"
 
 
 def _make_entry(options: dict) -> MockConfigEntry:

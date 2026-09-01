@@ -63,20 +63,13 @@ def saved_key_path(key_name: str) -> Path:
 
 
 def build_args(options: Mapping[str, Any]) -> list[str]:
-    """Translate config entry options into tailcat CLI arguments."""
-    args: list[str] = []
+    """Translate config entry options into arguments for `tailcat serve`.
 
-    mode = options.get(CONF_MODE)
-    if mode == MODE_PORT:
-        args.append(f"--serve={options[CONF_PORT]}")
-    elif mode == MODE_ALL:
-        args.append("--serve=all")
-    elif mode == MODE_NO_AUTH_SSH:
-        args.append("--serve=no-auth-ssh")
-    elif mode == MODE_EXIT_NODE:
-        args.append("--serve=exit-node")
-
-    args.append("--full-address")
+    --full-address is a `serve`-subcommand flag (not a top-level tailcat
+    flag), and tailcat requires flags before the trailing port/service
+    argument, so that argument is appended last.
+    """
+    args: list[str] = ["--full-address"]
 
     if options.get(CONF_KEY_MODE, KEY_MODE_EPHEMERAL) == KEY_MODE_EPHEMERAL:
         args.append("--key=new")
@@ -86,6 +79,16 @@ def build_args(options: Mapping[str, Any]) -> list[str]:
     allow_nodekey = options.get(CONF_ALLOW_NODEKEY)
     if allow_nodekey:
         args.append(f"--allow={allow_nodekey}")
+
+    mode = options.get(CONF_MODE)
+    if mode == MODE_PORT:
+        args.append(str(options[CONF_PORT]))
+    elif mode == MODE_ALL:
+        args.append("all")
+    elif mode == MODE_NO_AUTH_SSH:
+        args.append("no-auth-ssh")
+    elif mode == MODE_EXIT_NODE:
+        args.append("exit-node")
 
     return args
 
@@ -124,7 +127,7 @@ class TailcatProcessManager:
             return
 
         binary_path = self.entry.options[CONF_BINARY_PATH]
-        argv = [binary_path, *build_args(self.entry.options)]
+        argv = [binary_path, "serve", *build_args(self.entry.options)]
         self._stopping = False
         self._set_status(STATUS_STARTING)
 
